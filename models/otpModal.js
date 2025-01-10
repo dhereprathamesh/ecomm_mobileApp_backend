@@ -5,7 +5,7 @@ const otpSchema = new mongoose.Schema({
   expiryDate: { type: Date, required: true },
   otpCode: { type: String, required: true },
   mobileNumber: { type: String, required: true },
-  valid: { type: Boolean, default: true },
+  valid: { type: Boolean, default: false },
 });
 
 export const OTP = mongoose.model("OTP", otpSchema);

@@ -28,11 +28,25 @@ export const signUp = async (req, res) => {
 };
 
 export const verifyOtp = async (req, res) => {
-  const { email, otp } = req.body;
+  const { otp, userId } = req.body;
   try {
     const response = await authService.verifyOtp({
-      email,
+      userId,
       otp,
+    });
+
+    return res.status(response.status).json(response.data);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+};
+
+export const resendOtp = async (req, res) => {
+  const { userId } = req.body;
+
+  try {
+    const response = await authService.resendOtp({
+      userId,
     });
 
     return res.status(response.status).json(response.data);

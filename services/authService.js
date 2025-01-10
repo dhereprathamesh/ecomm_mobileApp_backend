@@ -8,6 +8,10 @@ export const signUp = async (userData) => {
   return authDao.createUser(userData);
 };
 
-export const verifyOtp = async ({ email, otp }) => {
-  return authDao.verifyOTP({ email, otp });
+export const verifyOtp = async ({ userId, otp }) => {
+  return authDao.verifyOTP({ userId, otp });
+};
+
+export const resendOtp = async ({ userId }) => {
+  return authDao.resendOTP(userId);
 };

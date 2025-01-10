@@ -1,5 +1,10 @@
 import express from "express";
-import { signIn, signUp, verifyOtp } from "../controllers/authController.js";
+import {
+  resendOtp,
+  signIn,
+  signUp,
+  verifyOtp,
+} from "../controllers/authController.js";
 
 const router = express.Router();
 
@@ -7,6 +12,7 @@ const router = express.Router();
 router.post("/signIn", signIn);
 router.post("/signUp", signUp);
 router.post("/verifyOtp", verifyOtp);
+router.post("/resendOtp", resendOtp);
 router.post("/reset-password");
 router.post("/change-password");
 

@@ -1,8 +1,10 @@
 import { comparePassword, hashPassword } from "../helpers/authHelper.js";
 import { User } from "../models/userModal.js";
+import { OTP } from "../models/otpModal.js";
 import { generateOTP } from "../utlis/generateOTP.js";
 import nodemailer from "nodemailer";
 import JWT from "jsonwebtoken";
+import mongoose from "mongoose";
 
 export const verifyCredentials = async (userData, res) => {
   try {
@@ -50,22 +52,8 @@ export const verifyCredentials = async (userData, res) => {
       { expiresIn: "7d" } // Token expiry
     );
 
-    // Respond with success
-    // return res.status(200).send({
-    //   success: true,
-    //   message: "Login successful.",
-    //   user: {
-    //     id: user._id,
-    //     name: user.name,
-    //     email: user.email,
-    //     mobileNo: user.mobileNo,
-    //     address: user.address,
-    //     role: user.role,
-    //   },
-    //   token,
-    // });
     return {
-      status: 201,
+      status: 200,
       data: {
         success: true,
         message: "Login successful.",
@@ -85,69 +73,6 @@ export const verifyCredentials = async (userData, res) => {
     throw new Error("Service error during user registration");
   }
 };
-
-// export const createUser = async (userData) => {
-//   //validation
-//   if (!userData.name) {
-//     return res.send({ message: "Name is Required" });
-//   }
-//   if (!userData.email) {
-//     return res.send({ message: "Email is Required" });
-//   }
-//   if (!userData.password) {
-//     return res.send({ message: "Password is Required" });
-//   }
-
-//   //check user
-//   const existingUser = await User.findOne({ email: userData.email });
-
-//   //existing user
-//   if (existingUser) {
-//     return {
-//       success: false,
-//       message: "already Register Please login",
-//     };
-//   }
-
-//   const otp = generateOTP();
-//   const otpExpires = Date.now() + 10 * 60 * 1000;
-
-//   const transporter = nodemailer.createTransport({
-//     service: "gmail",
-//     auth: {
-//       user: process.env.EMAIL_USER,
-//       pass: process.env.EMAIL_PASS,
-//     },
-//     tls: {
-//       rejectUnauthorized: false, // Ignore certificate errors
-//     },
-//   });
-
-//   // Send the OTP email
-//   await transporter.sendMail({
-//     from: process.env.EMAIL_USER,
-//     to: email,
-//     subject: "Your OTP Code",
-//     text: `Your OTP is ${otp}. It is valid for 10 minutes.`,
-//   });
-
-//   //register user
-//   //   const hashedPassword = await hashPassword(password);
-//   //   console.log("Hashed password:", hashedPassword);
-
-//   //save
-//   const user = await new User({
-//     userName: userData.userName,
-//     name: userData.name,
-//     email: userData.email,
-//     mobileNo: userData.mobileNo,
-//     password: userData.password,
-//   }).save();
-//   return {
-//     message: "User Register Successffully",
-//     user,
-//   };
-// };
 
 export const createUser = async (userData, res) => {
   try {
@@ -205,17 +130,25 @@ export const createUser = async (userData, res) => {
       name: userData.name,
       email: userData.email,
       mobileNo: userData.mobileNo,
-      password: hashedPassword, // Replace with `hashedPassword` after hashing
-      otp,
-      otpExpires,
+      password: hashedPassword,
+    }).save();
+
+    const otpModal = await new OTP({
+      user: user._id,
+      expiryDate: otpExpires,
+      otpCode: otp,
+      mobileNumber: userData.mobileNo,
+      email: userData.email,
+      // valid: { type: Boolean, default: true },
     }).save();
 
     return {
-      status: 201,
+      status: 200,
       data: {
         success: true,
         message: "User registered successfully. Please verify your OTP.",
         user,
+        otpModal,
       },
     };
   } catch (error) {
@@ -224,44 +157,43 @@ export const createUser = async (userData, res) => {
   }
 };
 
-export const verifyOTP = async ({ email, otp }) => {
-  if (!email || !otp) {
+export const verifyOTP = async ({ otp, userId }) => {
+  if (!otp || !userId) {
     return {
       status: 400,
-      data: { message: "Email and OTP are required" },
+      data: { message: "OTP and User ID are required" },
     };
   }
   try {
     // Find the user by email
-    const user = await User.findOne({ email });
+    const otpRecord = await OTP.findOne({ user: userId });
 
-    if (!user) {
+    if (!otpRecord) {
       return {
         status: 404,
-        data: { message: "User not found" },
+        data: { message: "OTP record not found" },
       };
     }
 
     // Check if OTP matches and is not expired
-    if (user.otp !== otp) {
+    if (otpRecord.otpCode !== otp) {
       return {
         status: 400,
         data: { message: "Invalid OTP" },
       };
     }
 
-    if (user.otpExpires < Date.now()) {
+    if (otpRecord.expiryDate < Date.now()) {
       return {
         status: 400,
         data: { message: "OTP has expired" },
       };
     }
 
-    // Activate the user (or mark as verified)
-    user.otp = undefined; // Remove OTP
-    user.otpExpires = undefined; // Remove OTP expiration
-    user.isVerified = true; // Mark as verified
-    await user.save();
+    otpRecord.valid = true; // Mark OTP as verified
+    // otpRecord.otpCode = undefined; // Remove OTP
+    // otpRecord.expiryDate = undefined; // Remove OTP expiration
+    await otpRecord.save();
 
     return {
       status: 200,
@@ -273,5 +205,89 @@ export const verifyOTP = async ({ email, otp }) => {
   } catch (error) {
     console.error("Error in verifyOTP:", error);
     throw new Error("Service error during OTP verification");
+  }
+};
+
+// New Resend OTP Function
+export const resendOTP = async (userId) => {
+  if (!userId) {
+    return {
+      status: 400,
+      data: { message: "User ID is required" },
+    };
+  }
+
+  try {
+    // Validate and convert userId to ObjectId
+    const validUserId = new mongoose.Types.ObjectId(userId);
+
+    // Find the user
+    const user = await User.findById(validUserId);
+    if (!user) {
+      return {
+        status: 404,
+        data: { message: "User not found" },
+      };
+    }
+
+    // Find the OTP record
+    const otpRecord = await OTP.findOne({ user: validUserId });
+
+    if (!otpRecord) {
+      return {
+        status: 404,
+        data: { message: "OTP record not found" },
+      };
+    }
+
+    // Check if OTP has expired
+    let otp, otpExpires;
+    if (otpRecord.expiryDate < Date.now()) {
+      // OTP expired, generate a new one
+      otp = generateOTP();
+      otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes from now
+      otpRecord.otpCode = otp;
+      otpRecord.expiryDate = otpExpires;
+      otpRecord.valid = false; // Mark as not verified
+    } else {
+      otp = otpRecord.otpCode;
+      otpExpires = otpRecord.expiryDate;
+    }
+
+    // Configure the email transporter
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+
+    // Send the OTP email
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: user.email, // Use the email from the User table
+      subject: "Your OTP Code",
+      text: `Your OTP is ${otp}. It is valid for 10 minutes.`,
+    });
+
+    // Save the OTP record (if updated)
+    await otpRecord.save();
+
+    return {
+      status: 200,
+      data: {
+        success: true,
+        message: "OTP resent successfully.",
+        otp,
+        otpExpires,
+      },
+    };
+  } catch (error) {
+    console.error("Error in resendOTP:", error);
+    throw new Error("Service error during OTP resend");
   }
 };
