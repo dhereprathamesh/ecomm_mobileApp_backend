@@ -157,8 +157,8 @@ export const createUser = async (userData, res) => {
   }
 };
 
-export const verifyOTP = async ({ otp, userId }) => {
-  if (!otp || !userId) {
+export const verifyOTP = async ({ otp, userName }) => {
+  if (!otp || !userName) {
     return {
       status: 400,
       data: { message: "OTP and User ID are required" },
@@ -166,7 +166,8 @@ export const verifyOTP = async ({ otp, userId }) => {
   }
   try {
     // Find the user by email
-    const otpRecord = await OTP.findOne({ user: userId });
+    const user = await User.findOne({ userName: userName});
+    const otpRecord = await OTP.findOne({ user: user });
 
     if (!otpRecord) {
       return {

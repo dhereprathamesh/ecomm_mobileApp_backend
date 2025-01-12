@@ -28,10 +28,10 @@ export const signUp = async (req, res) => {
 };
 
 export const verifyOtp = async (req, res) => {
-  const { otp, userId } = req.body;
+  const { otp, userName } = req.body;
   try {
     const response = await authService.verifyOtp({
-      userId,
+      userName,
       otp,
     });
 
