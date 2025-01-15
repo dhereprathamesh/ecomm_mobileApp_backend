@@ -1,0 +1,6 @@
+"productCode,productName,productDescription,productPrice,category,subCategory,availableStock,brand
+P001,Product A,This is product A description,29.99,Electronics,Laptops,100,Dell
+P002,Product B,This is product B description,19.99,Electronics,Headphones,50,Sony
+P003,Product C,This is product C description,49.99,Clothing,T-shirts,200,Nike
+P004,Product D,This is product D description,79.99,Electronics,Smartphones,30,Samsung
+P005,Product E,This is product E description,15.99,Clothing,Jeans,150,Levi's"

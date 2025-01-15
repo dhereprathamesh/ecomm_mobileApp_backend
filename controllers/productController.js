@@ -1,4 +1,7 @@
 import * as productService from "../services/productService.js";
+import csvParser from "csv-parser";
+import xlsx from "xlsx";
+import fs from "fs";
 
 // Controller to create new product
 export const createProductController = async (req, res) => {
@@ -139,6 +142,31 @@ export const deleteProductController = async (req, res) => {
       return res.status(400).json(result); // Handle error
     }
   } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
+
+// Controller to delete product
+export const bulkUploadProductsController = async (req, res) => {
+  const file = req.file;
+
+  try {
+    const result = await productService.bulkUploadProducts(file);
+
+    if (!result || typeof result.status !== "number") {
+      console.error("Invalid response from bulkUploadProducts:", result);
+      return res.status(500).json({
+        success: false,
+        message: "Unexpected error occurred.",
+      });
+    }
+
+    return res.status(result.status).json(result);
+  } catch (error) {
+    console.error("Error in bulkUploadProductsController:", error);
     return res.status(500).json({
       success: false,
       message: error.message || "Internal Server Error",

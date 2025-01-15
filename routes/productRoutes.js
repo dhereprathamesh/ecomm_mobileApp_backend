@@ -16,6 +16,8 @@ import {
   searchProductsByQuerryController,
   updateProductController,
 } from "../controllers/productController.js";
+import { bulkUploadProductsController } from "../controllers/productController.js";
+import { upload } from "../utlis/fileUpload.js";
 
 const router = express.Router();
 
@@ -23,7 +25,16 @@ router.post("/add-product", createProductController);
 router.put("/update-product/:id", updateProductController);
 router.delete("/delete-product/:id", deleteProductController);
 router.get("/get-product/:id", getSingleProductController);
-router.post("/add-bulkProducts");
+// router.post("/add-bulkProducts", upload.single("file"), async (req, res) => {
+//   console.log("File uploaded to:", req.file.path);
+//   const result = await bulkUploadProductsController(req.file);
+//   res.status(result.status).json(result);
+// });
+router.post(
+  "/add-bulkProducts",
+  upload.single("file"),
+  bulkUploadProductsController
+);
 router.get("/getAllProducts", getAllProductsController);
 router.get("/searchProduct/:query", searchProductsByQuerryController);
 router.post("/searchProductsByFilter", searchProductsByFilterController);

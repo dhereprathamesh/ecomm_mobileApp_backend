@@ -1,4 +1,7 @@
 import { Product } from "../models/productModal.js";
+import csvParser from "csv-parser";
+import xlsx from "xlsx";
+import fs from "fs";
 
 export const createProduct = async (userData) => {
   try {
@@ -201,6 +204,84 @@ export const deleteProduct = async (id) => {
     return {
       success: false,
       message: error.message || "Error deleting product",
+    };
+  }
+};
+
+export const bulkUploadProducts = async (file) => {
+  if (!file) {
+    return {
+      success: false,
+      status: 400,
+      message: "No file provided for upload.",
+    };
+  }
+
+  const filePath = file.path;
+  const fileExtension = file.originalname.split(".").pop().toLowerCase();
+  let productData = [];
+
+  try {
+    if (fileExtension === "csv") {
+      const rows = [];
+      await new Promise((resolve, reject) => {
+        fs.createReadStream(filePath)
+          .pipe(csvParser())
+          .on("data", (row) => rows.push(row))
+          .on("end", () => resolve(rows))
+          .on("error", (err) => reject(err));
+      });
+      productData = rows;
+    } else if (fileExtension === "xlsx" || fileExtension === "xls") {
+      const workbook = xlsx.readFile(filePath);
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      productData = xlsx.utils.sheet_to_json(sheet);
+    } else {
+      return {
+        success: false,
+        status: 400,
+        message: "Invalid file format. Only CSV and Excel are supported.",
+      };
+    }
+
+    // Save parsed data to the database
+    const saveResult = await saveProductsToDB(productData);
+    return saveResult;
+  } catch (error) {
+    console.error("Error in bulkUploadProducts:", error);
+    return {
+      success: false,
+      status: 500,
+      message: "Error processing file upload.",
+    };
+  }
+};
+
+const saveProductsToDB = async (productData) => {
+  try {
+    const products = productData.map((item) => ({
+      productCode: item.productCode,
+      productName: item.productName,
+      productDescription: item.productDescription,
+      productPrice: item.productPrice,
+      category: item.category,
+      subCategory: item.subCategory,
+      availableStock: item.availableStock,
+      brand: item.brand,
+    }));
+
+    await Product.insertMany(products); // Ensure the Product model is correctly defined
+    return {
+      success: true,
+      status: 200,
+      message: `${products.length} products uploaded successfully.`,
+    };
+  } catch (error) {
+    console.error("Error saving products to database:", error);
+    return {
+      success: false,
+      status: 500,
+      message: "Error saving products to the database.",
     };
   }
 };

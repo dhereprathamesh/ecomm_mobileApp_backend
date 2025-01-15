@@ -27,3 +27,7 @@ export const updateProduct = async (userData) => {
 export const deleteProduct = async (id) => {
   return productDao.deleteProduct(id);
 };
+
+export const bulkUploadProducts = async (file) => {
+  return productDao.bulkUploadProducts(file);
+};
