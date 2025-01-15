@@ -270,7 +270,7 @@ const saveProductsToDB = async (productData) => {
       brand: item.brand,
     }));
 
-    await Product.insertMany(products); // Ensure the Product model is correctly defined
+    await Product.insertMany(products);
     return {
       success: true,
       status: 200,

@@ -3,7 +3,6 @@ import {
   generateSubCategoryId,
 } from "../helpers/categoryHelper.js";
 import { Category } from "../models/categoryModal.js";
-import { SubCategory } from "../models/subCategories.js";
 
 // get All Categories List
 export const getAllCategory = async (req, res) => {
@@ -42,24 +41,6 @@ export const createCategory = async (categoryName) => {
     // Create and save the new category
     const newCategory = new Category({ categoryId, categoryName });
     await newCategory.save();
-
-    // // const subCategories = await SubCategory.findOne({ categoryId: categoryId });
-    // const newSubCategoryId = await generateSubCategoryId();
-
-    // const newSubCategory = await SubCategory.findOne({
-    //   subCategoryId: newSubCategoryId,
-    // });
-
-    // if (newSubCategory) {
-    //   return {
-    //     status: 404,
-    //     data: { message: "Sub Category already present" },
-    //   };
-    // }
-
-    // const subCategory = await new SubCategory({
-    //   subCategoryId: newSubCategory,
-    // }).save();
 
     return {
       status: 200,
