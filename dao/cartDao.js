@@ -64,6 +64,7 @@ export const addToCart = async (cartData) => {
   }
 };
 
+//get user cart
 export const getUserCart = async (userName) => {
   try {
     if (!userName) {
@@ -111,5 +112,156 @@ export const getUserCart = async (userName) => {
   } catch (error) {
     console.error(error);
     throw new Error("Error while getting User Cart");
+  }
+};
+
+// Update cart
+export const updateCart = async (cartData) => {
+  const { userName, productCode, quantity, cartId } = cartData;
+
+  if (!userName || !productCode || !quantity || !cartId) {
+    throw new Error(
+      "userName, productCode, quantity, and cartId are required."
+    );
+  }
+
+  try {
+    // Find user by userName
+    const user = await User.findOne({ userName: userName });
+    if (!user) {
+      throw new Error("User not found.");
+    }
+
+    // Find the specific cart by cartId
+    const cart = await Cart.findOne({ cartId: cartId, user: user });
+    if (!cart) {
+      throw new Error("Cart not found.");
+    }
+
+    // Find the product by productCode
+    const product = await Product.findOne({ productCode: productCode });
+    if (!product) {
+      throw new Error("Product not found.");
+    }
+
+    // Find existing cart entry for this product
+    let existingCartEntry = await CartEntry.findOne({
+      product: product,
+      cart: cart,
+    });
+
+    if (existingCartEntry) {
+      // Update existing cart entry
+      const oldQuantity = existingCartEntry.cartQuantity;
+      const quantityDifference = quantity - oldQuantity;
+
+      existingCartEntry.cartQuantity = quantity;
+      await existingCartEntry.save();
+
+      // Update the cart amount
+      cart.cartAmount += product.productPrice * quantityDifference;
+
+      // If quantity is changed, adjust itemCount
+      if (quantityDifference !== 0) {
+        cart.itemCount = cart.itemCount + (quantityDifference > 0 ? 1 : -1);
+      }
+
+      await cart.save();
+
+      return {
+        status: 200,
+        data: {
+          success: true,
+          message: "Cart updated successfully.",
+          cart,
+        },
+      };
+    } else {
+      // If cart entry does not exist, add new entry
+      const newCartEntry = new CartEntry({
+        cart: cart,
+        cartQuantity: quantity,
+        product: product,
+        userName: user.userName,
+      });
+
+      await newCartEntry.save();
+      cart.cartAmount += product.productPrice * quantity;
+      cart.itemCount = cart.itemCount + 1;
+
+      await cart.save();
+
+      return {
+        status: 200,
+        data: {
+          success: true,
+          message: "Product added to cart.",
+          cart,
+        },
+      };
+    }
+  } catch (error) {
+    console.error("Error updating cart:", error);
+    throw new Error("Error updating cart.");
+  }
+};
+
+export const clearCart = async (cartId) => {
+  try {
+    if (!cartId) throw new Error("Cart ID is required.");
+
+    // Find the cart by cartId
+    const cart = await Cart.findOne({ cartId });
+    if (!cart) throw new Error("Cart not found.");
+
+    // Remove all associated cart entries
+    await CartEntry.deleteMany({ cart: cart._id });
+
+    // Reset the cart's amount and item count
+    cart.cartAmount = 0;
+    cart.itemCount = 0;
+    await cart.save();
+
+    return {
+      status: 200,
+      data: {
+        success: true,
+        message: "All cart entries deleted successfully, cart is still intact.",
+        cart,
+      },
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: error.message || "Error removing cart entries.",
+    };
+  }
+};
+
+export const removeCartEntry = async (cartEntryId) => {
+  try {
+    if (!cartEntryId) throw new Error("Cart Entry ID is required.");
+
+    const cartEntry = await CartEntry.findById(cartEntryId);
+    if (!cartEntry) throw new Error("Cart entry not found.");
+
+    const cart = await Cart.findById(cartEntry.cart);
+    if (!cart) throw new Error("Cart not found.");
+
+    await CartEntry.findByIdAndDelete(cartEntryId);
+
+    await cart.save();
+    return {
+      success: true,
+      message: "Cart entry removed successfully.",
+      cart,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: error.message || "Error removing cart entry.",
+    };
   }
 };
