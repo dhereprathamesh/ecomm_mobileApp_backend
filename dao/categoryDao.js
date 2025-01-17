@@ -50,6 +50,12 @@ export const createCategory = async (categoryName) => {
     };
   } catch (error) {
     console.error(error);
-    throw new Error(error.message || "Failed to create category");
+    return {
+      status: 500,
+      data: {
+        success: false,
+        message: "Failed to create category",
+      },
+    };
   }
 };

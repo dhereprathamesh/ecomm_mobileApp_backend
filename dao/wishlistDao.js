@@ -35,36 +35,6 @@ export const getAllUserWishlist = async (userName) => {
   }
 };
 
-// Add a product to a wishlist
-// export const addToWishList = async (userId, productId) => {
-// try {
-//     let wishlist = await Wishlist.findOne({ user: userId });
-
-//     console.log(wishlist);
-
-//     // If no wishlist exists, create a new one
-//     if (!wishlist) {
-//     wishlist = new Wishlist({
-//         user: userId,
-//         products: [productId],
-//         wishListName: "Default Wishlist",
-//     });
-//     await wishlist.save();
-//     } else {
-//     // Check if the product is already in the wishlist
-//     if (wishlist.products.includes(productId)) {
-//         throw new Error("Product already in wishlist.");
-//     }
-//     wishlist.products.push(productId);
-//     await wishlist.save();
-//     }
-
-//     return wishlist;
-// } catch (error) {
-//     throw new Error("Error adding to wishlist.");
-// }
-// };
-
 export const getSingleWishlist = async (wishListId) => {
   try {
     if (!wishListId) {

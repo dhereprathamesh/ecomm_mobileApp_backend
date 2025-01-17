@@ -153,7 +153,13 @@ export const createUser = async (userData, res) => {
     };
   } catch (error) {
     console.error("Error in createUser:", error);
-    throw new Error("Service error during user registration");
+    return {
+      status: 500,
+      data: {
+        success: false,
+        message: "Service error during user registration",
+      },
+    };
   }
 };
 
@@ -166,7 +172,7 @@ export const verifyOTP = async ({ otp, userName }) => {
   }
   try {
     // Find the user by email
-    const user = await User.findOne({ userName: userName});
+    const user = await User.findOne({ userName: userName });
     const otpRecord = await OTP.findOne({ user: user });
 
     if (!otpRecord) {
@@ -205,7 +211,14 @@ export const verifyOTP = async ({ otp, userName }) => {
     };
   } catch (error) {
     console.error("Error in verifyOTP:", error);
-    throw new Error("Service error during OTP verification");
+    // throw new Error("Service error during OTP verification");
+    return {
+      status: 500,
+      data: {
+        success: false,
+        message: "Service error during OTP verification",
+      },
+    };
   }
 };
 
@@ -289,6 +302,12 @@ export const resendOTP = async (userId) => {
     };
   } catch (error) {
     console.error("Error in resendOTP:", error);
-    throw new Error("Service error during OTP resend");
+    return {
+      status: 500,
+      data: {
+        success: false,
+        message: "Service error during OTP resend",
+      },
+    };
   }
 };

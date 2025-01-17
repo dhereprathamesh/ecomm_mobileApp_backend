@@ -10,7 +10,10 @@ export const addToCart = async (cartData) => {
   const { userName, productCode, quantity } = cartData;
 
   if (!userName || !productCode || !quantity) {
-    throw new Error("userName, productCode, and quantity are required.");
+    return {
+      status: 400,
+      data: { message: "userName, productCode, and quantity are required." },
+    };
   }
 
   try {
@@ -60,7 +63,13 @@ export const addToCart = async (cartData) => {
     }
   } catch (error) {
     console.error(error);
-    throw new Error("Error adding product to cart.");
+    return {
+      status: 500,
+      data: {
+        success: false,
+        message: "Error adding product to cart.",
+      },
+    };
   }
 };
 
@@ -111,7 +120,13 @@ export const getUserCart = async (userName) => {
     };
   } catch (error) {
     console.error(error);
-    throw new Error("Error while getting User Cart");
+    return {
+      status: 500,
+      data: {
+        success: false,
+        message: "Error while getting User Cart",
+      },
+    };
   }
 };
 
@@ -202,7 +217,13 @@ export const updateCart = async (cartData) => {
     }
   } catch (error) {
     console.error("Error updating cart:", error);
-    throw new Error("Error updating cart.");
+    return {
+      status: 500,
+      data: {
+        success: false,
+        message: "Error updating cart.",
+      },
+    };
   }
 };
 
@@ -233,8 +254,11 @@ export const clearCart = async (cartId) => {
   } catch (error) {
     console.error(error);
     return {
-      success: false,
-      message: error.message || "Error removing cart entries.",
+      status: 500,
+      data: {
+        success: false,
+        message: error.message || "Error removing cart entries.",
+      },
     };
   }
 };
@@ -260,8 +284,11 @@ export const removeCartEntry = async (cartEntryId) => {
   } catch (error) {
     console.error(error);
     return {
-      success: false,
-      message: error.message || "Error removing cart entry.",
+      status: 500,
+      data: {
+        success: false,
+        message: error.message || "Error removing cart entry.",
+      },
     };
   }
 };
