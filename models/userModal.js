@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, ref: "UserRole" },
   mobileNo: { type: String },
-  // isVerified: { type: Boolean, default: false },
+  isActive: { type: Boolean, default: false },
   // otp: { type: String },
   // otpExpires: { type: Date },
 });

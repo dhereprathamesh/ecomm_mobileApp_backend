@@ -93,7 +93,10 @@ export const createUser = async (userData, res) => {
     if (existingUser) {
       return {
         status: 400,
-        data: { message: "Already registered. Please log in." },
+        data: { 
+          success: "false",
+          message: "Already registered. Please log in." 
+        },
       };
     }
 
@@ -145,15 +148,19 @@ export const createUser = async (userData, res) => {
     return {
       status: 200,
       data: {
-        success: true,
-        message: "User registered successfully. Please verify your OTP.",
-        user,
-        otpModal,
+        success: "true",
+        message: "Activate your account by verifying your OTP sent to your email.",
       },
     };
   } catch (error) {
     console.error("Error in createUser:", error);
-    throw new Error("Service error during user registration");
+    return {
+      status: 500,
+      data: {
+        success: "false",
+        message: "Service error during user registration",
+      },
+    };
   }
 };
 
@@ -161,7 +168,7 @@ export const verifyOTP = async ({ otp, userName }) => {
   if (!otp || !userName) {
     return {
       status: 400,
-      data: { message: "OTP and User ID are required" },
+      data: { success: "false", message: "OTP and User ID are required" },
     };
   }
   try {
@@ -172,7 +179,7 @@ export const verifyOTP = async ({ otp, userName }) => {
     if (!otpRecord) {
       return {
         status: 404,
-        data: { message: "OTP record not found" },
+        data: { success: "false", message: "OTP record not found" },
       };
     }
 
@@ -180,32 +187,40 @@ export const verifyOTP = async ({ otp, userName }) => {
     if (otpRecord.otpCode !== otp) {
       return {
         status: 400,
-        data: { message: "Invalid OTP" },
+        data: { success: "false", message: "Invalid OTP" },
       };
     }
 
     if (otpRecord.expiryDate < Date.now()) {
       return {
         status: 400,
-        data: { message: "OTP has expired" },
+        data: { success: "false",message: "OTP has expired" },
       };
     }
 
-    otpRecord.valid = true; // Mark OTP as verified
+    otpRecord.isValid = false; // Mark OTP as verified or invalidate otp
     // otpRecord.otpCode = undefined; // Remove OTP
     // otpRecord.expiryDate = undefined; // Remove OTP expiration
+    user.isActive = true;
     await otpRecord.save();
+    await user.save();
 
     return {
       status: 200,
       data: {
-        success: true,
-        message: "OTP verified successfully. Account activated!",
+        success: "true",
+        message: "Account activated! You can sign in now.",
       },
     };
   } catch (error) {
     console.error("Error in verifyOTP:", error);
-    throw new Error("Service error during OTP verification");
+    return {
+      status: 500,
+      data: {
+        success: "false",
+        message: "Service error during user registration",
+      },
+    };
   }
 };
 
