@@ -1,0 +1,3 @@
+productCode,productName,productDescription,productPrice,category,subCategory,availableStock,brand
+P001,Product A,This is product A description,29.99,Electronics,acz,100,Dell
+P002,Product B,This is product B description,19.99,Electronics,acz,50,Sony

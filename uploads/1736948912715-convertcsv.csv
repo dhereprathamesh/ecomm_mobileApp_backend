@@ -1,0 +1,7 @@
+"productCode,productName,productDescription,productPrice,category,subCategory,availableStock,brand
+P002,Smartphone,Latest smartphone with high-end features,699,Electronics,Mobile,100,Apple
+P003,Laptop,Powerful laptop for gaming and work,1200,Electronics,Laptop,50,Dell
+P003,T-Shirt,Cotton t-shirt with cool graphics,25,Clothing,Shirts,200,Nike
+P004,Smartwatch,Water-resistant smartwatch with fitness tracking,199,Electronics,Watch,150,Fossil
+P005,Headphones,Noise-cancelling headphones for immersive sound,89,Electronics,Audio,300,Sony
+"

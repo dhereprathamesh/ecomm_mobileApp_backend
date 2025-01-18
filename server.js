@@ -9,6 +9,7 @@ import orderRoutes from "./routes/orderRoutes.js";
 import shippingRoutes from "./routes/shippingRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import wishlistRoutes from "./routes/wishlistRoutes.js";
+import userRoleRoutes from "./routes/userRoleRoutes.js";
 
 // import morgan from "morgan";
 
@@ -31,6 +32,7 @@ app.use("/api/v1/cart", cartRoutes);
 app.use("/api/v1/order", orderRoutes);
 app.use("/api/v1/shipping", shippingRoutes);
 app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/userRole", userRoleRoutes);
 app.use("/api/v1/wishlist", wishlistRoutes);
 
 const PORT = process.env.PORT || 8080;

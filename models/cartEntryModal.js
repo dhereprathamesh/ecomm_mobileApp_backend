@@ -8,6 +8,7 @@ const cartEntrySchema = new mongoose.Schema({
     ref: "Product",
     required: true,
   },
+  userName: { type: String },
 });
 
 export const CartEntry = mongoose.model("CartEntry", cartEntrySchema);
