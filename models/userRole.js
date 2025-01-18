@@ -7,3 +7,5 @@ const userRoleSchema = new mongoose.Schema({
 });
 
 export const UserRole = mongoose.model("UserRole", userRoleSchema);
+
+// create and get all user role
